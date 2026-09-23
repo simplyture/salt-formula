@@ -20,7 +20,7 @@ salt-pkgrepo-install-saltstack-debian:
   pkgrepo.managed:
     - humanname: SaltStack Debian Repo
     - name: {{ salt_settings.pkgrepo }}
-    - file: /etc/apt/sources.list.d/salt.list
+    - file: /etc/apt/sources.list.d/salt.sources
     {% if salt_settings.get('key_url') is not none %}
     - key_url: {{ salt_settings.key_url }}
     {% endif %}
