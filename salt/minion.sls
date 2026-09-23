@@ -207,7 +207,7 @@ permissions-minion-config:
         {{ salt_settings.rootgroup }}
         {%- endif %}
     {%- if grains['kernel'] != 'Windows' %}
-    - mode: 640
+    - mode: 644
     {% endif %}
     - replace: False
     {% endif %}
@@ -267,7 +267,7 @@ permissions-minion.pub:
         {{ salt_settings.rootgroup }}
         {%- endif %}
     {%- if grains['kernel'] != 'Windows' %}
-    - mode: 644
+    - mode: 400
     {% endif %}
     - replace: False
     - require:
