@@ -1,4 +1,8 @@
 {% from "salt/map.jinja" import salt_settings with context %}
+{% set cfg_salt = pillar.get('salt', {}) %}
+{% set cfg_api = cfg_salt.get('api', {}) %}
+{% set api_users = cfg_api.get('users', {}) %}
+{% set htpasswd_file = cfg_api.get('htpasswd_file', '/etc/salt/api-users.htpasswd') %}
 
 include:
   - salt.master
@@ -27,30 +31,28 @@ salt-api:
       - file: salt-master
 {% endif %}
 
-{% set api_users = salt['pillar.get']('salt_api:users', {}) %}
-
+{% if api_users %}
 apache2-utils:
   pkg.installed
 
 {% for username, config in api_users.items() %}
-
 salt-api-user-{{ username }}:
   webutil.user_exists:
     - name: {{ username | tojson }}
     - password: {{ config['password'] | tojson }}
-    - htpasswd_file: /etc/salt/api-users.htpasswd
+    - htpasswd_file: {{ htpasswd_file | tojson }}
     - update: true
     - require:
       - pkg: apache2-utils
     - require_in:
       - file: salt-api-htpasswd-file
-
 {% endfor %}
 
 salt-api-htpasswd-file:
   file.managed:
-    - name: /etc/salt/api-users.htpasswd
+    - name: {{ htpasswd_file | tojson }}
     - user: salt
     - group: salt
     - mode: '0600'
     - replace: false
+{% endif %}
