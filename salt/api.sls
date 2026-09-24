@@ -26,3 +26,31 @@ salt-api:
 {% endif %}
       - file: salt-master
 {% endif %}
+
+{% set api_users = salt['pillar.get']('salt_api:users', {}) %}
+
+apache2-utils:
+  pkg.installed
+
+{% for username, config in api_users.items() %}
+
+salt-api-user-{{ username }}:
+  webutil.user_exists:
+    - name: {{ username | tojson }}
+    - password: {{ config['password'] | tojson }}
+    - htpasswd_file: /etc/salt/api-users.htpasswd
+    - update: true
+    - require:
+      - pkg: apache2-utils
+    - require_in:
+      - file: salt-api-htpasswd-file
+
+{% endfor %}
+
+salt-api-htpasswd-file:
+  file.managed:
+    - name: /etc/salt/api-users.htpasswd
+    - user: salt
+    - group: salt
+    - mode: '0600'
+    - replace: false
