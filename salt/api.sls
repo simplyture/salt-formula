@@ -32,20 +32,25 @@ salt-api:
 {% endif %}
 
 {% if api_users %}
-apache2-utils:
-  pkg.installed
+salt-api-htpasswd-package:
+  pkg.installed:
+    - name: apache2-utils
+    - reload_modules: true
 
 {% for username, config in api_users.items() %}
 salt-api-user-{{ username }}:
-  webutil.user_exists:
-    - name: {{ username | tojson }}
-    - password: {{ config['password'] | tojson }}
-    - htpasswd_file: {{ htpasswd_file | tojson }}
-    - update: true
+  module.run:
+    - webutil.useradd:
+      - pwfile: {{ htpasswd_file | tojson }}
+      - user: {{ username | tojson }}
+      - password: {{ config['password'] | tojson }}
+    - unless:
+      - fun: webutil.verify
+        pwfile: {{ htpasswd_file | tojson }}
+        user: {{ username | tojson }}
+        password: {{ config['password'] | tojson }}
     - require:
-      - pkg: apache2-utils
-    - require_in:
-      - file: salt-api-htpasswd-file
+      - pkg: salt-api-htpasswd-package
 {% endfor %}
 
 salt-api-htpasswd-file:
@@ -55,4 +60,8 @@ salt-api-htpasswd-file:
     - group: salt
     - mode: '0600'
     - replace: false
+    - require:
+{% for username in api_users %}
+    - module: salt-api-user-{{ username }}
+{% endfor %}
 {% endif %}
