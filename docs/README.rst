@@ -212,6 +212,26 @@ A future update to the formula may include extraction of version from the downlo
 
 Refer to pillar.example for more information.
 
+Windows Support
+---------------
+
+On Windows the salt.minion state manages the ``salt-minion-py3`` package from winrepo-ng served by the salt-master (``salt://win/repo-ng``). An already installed minion can be upgraded and configured by the formula:
+
+::
+
+    salt:
+      version: 3007.8            # install/upgrade to this version
+      minion_pkg_state: installed  # or latest
+      pkg_refresh: True          # default on Windows
+
+The package definition in winrepo-ng must set ``use_scheduler: True``: the installer stops the salt-minion service, so it has to run as a scheduled task rather than as a child of the minion. While that task (``update-salt-software``) runs, the formula doesn't start or restart the minion service; the installer brings it back up.
+
+``full_name`` in the definition must match the ``DisplayName`` of the installed minion, otherwise ``pkg.list_pkgs`` won't report ``salt-minion-py3`` and the package will be reinstalled on every run. The exe (NSIS) installer registers ``Salt Minion <version> (Python 3)``, the MSI registers ``Salt Minion <version>``.
+
+Use only ``/S`` as ``install_flags``. ``/master=``, ``/minion-name=``, ``/default-config`` or ``/custom-config=`` make the installer back up the existing ``minion``/``minion.d`` config and write a new one.
+
+Migrating from the MSI: the exe installer uninstalls an MSI-installed minion first, keeping ``conf`` and ``pki``, unless the MSI was installed with ``MINION_CONFIG`` or ``REMOVE_CONFIG=1``. In that case the uninstall wipes the whole root dir, so the formula removes the ``REMOVE_CONFIG`` value from ``HKLM\SOFTWARE\Salt Project\Salt`` before installing the package.
+
 Testing
 -------
 

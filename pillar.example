@@ -24,6 +24,16 @@ salt:
   # Optional: set salt version (if install_packages is set to true)
   version: '3006.9'
 
+  # State of the salt-minion package managed by `salt.minion`:
+  #   installed - install `version` (or any version if not set); default
+  #   latest    - upgrade to the newest available version (`version` is ignored)
+  minion_pkg_state: installed
+
+  # Refresh the package database before installing the package.
+  # Defaults to true on Windows, so new versions added to winrepo-ng on
+  # the master are picked up right away.
+  pkg_refresh: false
+
   # Pin version provided under 'version' key by using apt-pinning
   # available only on Debian family OS-es
   pin_version: false

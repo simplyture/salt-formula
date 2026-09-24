@@ -132,9 +132,13 @@ OpenBSD:
   python_git: py-GitPython
 
 Windows:
-  salt_minion: salt-minion{{ py_ver_repr or "-py3" }}
+  # package name in winrepo-ng
+  salt_minion: salt-minion-{{ py_ver_repr or 'py3' }}
+  # pick up new definitions from winrepo-ng on the master
+  pkg_refresh: true
   config_path: 'C:\ProgramData\Salt Project\Salt\conf'
   minion_service: salt-minion
+  salt_call: 'C:\Program Files\Salt Project\Salt\salt-call.exe'
   rootuser: '{{ rootuser | d("") }}'
 
 MacOS:

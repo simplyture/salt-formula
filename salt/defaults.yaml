@@ -8,6 +8,10 @@ salt:
   rootuser: root
   rootgroup: root
   install_packages: true
+  # state of the salt-minion package: installed | latest
+  minion_pkg_state: installed
+  # refresh the package database before installing (winrepo-ng on Windows)
+  pkg_refresh: false
   use_pip: false
   clean_config_d_dir: true
   restart_via_at: false
@@ -48,6 +52,7 @@ salt:
   salt_cloud: salt-cloud
   salt_api: salt-api
   salt_ssh: salt-ssh
+  salt_call: salt-call
 
   pkgrepo: ''          # see osfamilymap
   ssh_roster: {}       # see pillar data

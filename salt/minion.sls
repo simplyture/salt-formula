@@ -1,6 +1,11 @@
 {%- set tplroot = tpldir.split('/')[0] %}
 {%- from tplroot ~ "/map.jinja" import salt_settings with context %}
 {%- from tplroot ~ "/libtofs.jinja" import files_switch with context %}
+{%- set pkg_state = salt_settings.minion_pkg_state %}
+{#- On Windows winrepo-ng installs salt-minion via a scheduled task
+    (`use_scheduler: True` in the package definition), which stops and starts
+    the minion service on its own. Don't touch the service while it runs. #}
+{%- set win_pkg_task_running = 'powershell -NoProfile -Command "if ((Get-ScheduledTask -TaskName update-salt-software -ErrorAction SilentlyContinue).State -eq \'Running\') { exit 0 } else { exit 1 }"' %}
 
 {% if salt_settings.pin_version and salt_settings.version and grains.os_family|lower == 'debian' %}
 include:
@@ -52,6 +57,21 @@ salt-minion-macos:
         {%- endif %}
     {%- endif %}
 
+    {%- if grains['kernel'] == 'Windows' and salt_settings.install_packages %}
+{#- The exe installer uninstalls an MSI-installed minion first. If the MSI was
+    installed with MINION_CONFIG or REMOVE_CONFIG=1, that uninstall would wipe
+    the whole root_dir, minion keys included. #}
+        {%- for use_32bit in [False, True] %}
+salt-minion-msi-keep-config{{ '-32bit' if use_32bit else '' }}:
+  reg.absent:
+    - name: 'HKLM\SOFTWARE\Salt Project\Salt'
+    - vname: REMOVE_CONFIG
+    - use_32bit_registry: {{ use_32bit }}
+    - require_in:
+      - pkg: salt-minion
+        {%- endfor %}
+    {%- endif %}
+
 salt-minion:
     {% if salt_settings.install_packages %}
        {%- if grains.os == 'MacOS' and salt_settings.salt_minion_pkg_source %}
@@ -69,10 +89,13 @@ salt-minion:
     - onchanges_in:
       - cmd: remove-macpackage-salt
         {%- elif grains.os != 'MacOS' and "workaround https://github.com/saltstack/salt/issues/49348" %}
-  pkg.installed:
+  pkg.{{ 'latest' if pkg_state == 'latest' else 'installed' }}:
     - name: {{ salt_settings.salt_minion }}
-            {%- if salt_settings.version %}
+            {%- if salt_settings.version and pkg_state != 'latest' %}
     - version: {{ salt_settings.version }}
+            {%- endif %}
+            {%- if salt_settings.pkg_refresh %}
+    - refresh: True
             {%- endif %}
             {% if salt_settings.minion_service_details.state != 'ignore' %}
     - require_in:
@@ -106,12 +129,16 @@ salt-minion:
     - watch:
       - file: remove-old-minion-conf-file
     - order: last
+    {%- if grains['kernel'] == 'Windows' %}
+    - unless: {{ win_pkg_task_running | json }}
+    {%- endif %}
     {% endif %}
     {%- if not salt_settings.restart_via_at %}
   cmd.run:
         {%- if grains['saltversioninfo'] >= [ 2016, 3 ] %}
             {%- if grains['kernel'] == 'Windows' %}
-    - name: 'salt-call.bat --local service.restart {{ salt_settings.minion_service }}'
+    - name: '"{{ salt_settings.salt_call }}" --local service.restart {{ salt_settings.minion_service }}'
+    - unless: {{ win_pkg_task_running | json }}
             {%- else %}
     - name: 'salt-call --local service.restart {{ salt_settings.minion_service }} --out-file /dev/null'
             {%- endif %}
@@ -134,7 +161,7 @@ salt-minion:
       - macpackage: salt-minion
             {%- elif grains.os == 'MacOS' %}
       - pkg: download-salt-minion
-            {%- else %}
+            {%- elif grains['kernel'] != 'Windows' %}
       - pkg: salt-minion
             {%- endif %}
         {%- endif %}
