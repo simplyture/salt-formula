@@ -62,6 +62,6 @@ salt-api-htpasswd-file:
     - replace: false
     - require:
 {% for username in api_users %}
-    - module: salt-api-user-{{ username }}
+      - module: salt-api-user-{{ username }}
 {% endfor %}
 {% endif %}
