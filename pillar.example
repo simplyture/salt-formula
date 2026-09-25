@@ -122,6 +122,16 @@ salt:
     pillar_roots:
       base:
         - /srv/pillar
+    # for salt-api with cherrypy rest interface
+    rest_cherrypy:
+      port: 8000
+      ssl_crt: /etc/pki/api/certs/server.crt
+      ssl_key: /etc/pki/api/certs/server.key
+    # clients allowed via salt-api (none are enabled by default since 3006)
+    netapi_enable_clients:
+      - local
+      - local_async
+      - runner
     # for salt-api with tornado rest interface
     rest_tornado:
       port: 8000

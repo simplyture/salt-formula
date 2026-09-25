@@ -83,6 +83,7 @@ Configure pillar data under salt:ssh_roster to feed the template.
 
 Install salt api
 Requisite: Configure salt-master with rest_cherrypy or rest_tornado.
+Since Salt 3006 set ``salt:master:netapi_enable_clients`` as well, otherwise every API call is rejected.
 
 ``salt.standalone``
 ^^^^^^^^^^^^^^^^^^^
