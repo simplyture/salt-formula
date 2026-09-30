@@ -147,11 +147,14 @@ salt:
       # group: salt
       # home: /opt/saltstack/salt
       keys:
-        # file name in ~/.ssh -> private key
-        id_github_salt_formula: |
-          -----BEGIN OPENSSH PRIVATE KEY-----
-          ...........
-          -----END OPENSSH PRIVATE KEY-----
+        # file name in ~/.ssh; ``public`` is optional (<name>.pub), it is only
+        # needed for pygit2: gitfs_pubkey: /opt/saltstack/salt/.ssh/<name>.pub
+        id_github_salt_formula:
+          private: |
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            ...........
+            -----END OPENSSH PRIVATE KEY-----
+          public: ssh-ed25519 AAAA........ salt@master
       # one Host block per entry; 'Host *' is always rendered last.
       # IdentitiesOnly defaults to yes; a bare IdentityFile name points to a key above.
       # Use the alias in gitfs_remotes: git@github-salt-formula:org/salt-formula.git

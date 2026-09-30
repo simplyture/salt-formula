@@ -23,17 +23,20 @@ salt-master-ssh-dir:
     {%- endif %}
 
     {%- for name, key in cfg_ssh['keys'].items() %}
-salt-master-ssh-key-{{ name }}:
+      {#- public is optional: ssh derives it, pygit2 (gitfs_pubkey) needs the file #}
+      {%- for type, suffix in [('private', ''), ('public', '.pub')] if key.get(type) %}
+salt-master-ssh-key-{{ name }}-{{ type }}:
   file.managed:
-    - name: {{ ssh_dir }}/{{ name }}
+    - name: {{ ssh_dir }}/{{ name }}{{ suffix }}
     {#- OpenSSH rejects a private key without the trailing newline #}
-    - contents: {{ (key.rstrip('\n') ~ '\n') | json }}
+    - contents: {{ (key[type].rstrip('\n') ~ '\n') | json }}
     - user: {{ ssh_user }}
     - group: {{ ssh_group }}
-    - mode: '0600'
+    - mode: {{ '0600' if type == 'private' else '0644' }}
     - show_changes: false
     - require:
       - file: salt-master-ssh-dir
+      {%- endfor %}
     {%- endfor %}
 
     {%- if cfg_ssh.config %}

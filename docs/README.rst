@@ -67,7 +67,7 @@ Also includes ``salt.master_ssh`` when ``salt:master:ssh`` is set.
 ^^^^^^^^^^^^^^^^^^^
 
 Manage ``~/.ssh`` of the user running salt-master (``/opt/saltstack/salt/.ssh`` for onedir packages):
-private keys, ``config`` and ``known_hosts`` from ``salt:master:ssh``.
+keys (``.pub`` optional, needed by pygit2 only), ``config`` and ``known_hosts`` from ``salt:master:ssh``.
 Useful for gitfs with GitPython, which ignores ``gitfs_privkey``/``gitfs_pubkey`` and relies on plain ssh.
 
 ``salt.syndic``
