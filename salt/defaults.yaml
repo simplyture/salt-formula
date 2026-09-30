@@ -62,6 +62,14 @@ salt:
 
   master:
     gitfs_provider: gitpython
+    # ~/.ssh of the user running salt-master, see salt.master_ssh
+    ssh:
+      user: salt
+      group: salt
+      home: /opt/saltstack/salt
+      keys: {}
+      config: {}
+      known_hosts: {}
   minion:
     master_type: str  # see init.sls & standalone.sls
 

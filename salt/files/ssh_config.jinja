@@ -1,0 +1,19 @@
+# This file managed by Salt, do not edit by hand!!
+{#- 'Host *' goes last: ssh uses the first value it finds for each option #}
+{%- set names = hosts | list | reject('equalto', '*') | list + (['*'] if '*' in hosts else []) %}
+{%- for name in names %}
+  {%- set options = hosts[name] or {} %}
+  {%- if name != '*' and 'IdentitiesOnly' not in options %}
+    {%- do options.update({'IdentitiesOnly': True}) %}
+  {%- endif %}
+
+Host {{ name }}
+  {%- for option, values in options.items() %}
+    {%- for value in (values if values is sequence and values is not string else [values]) %}
+      {%- if value is sameas true %}{% set value = 'yes' %}{% elif value is sameas false %}{% set value = 'no' %}{% endif %}
+      {#- a bare key name refers to a key managed under salt:master:ssh:keys #}
+      {%- if option == 'IdentityFile' and '/' not in value %}{% set value = ssh_dir ~ '/' ~ value %}{% endif %}
+  {{ option }} {{ value }}
+    {%- endfor %}
+  {%- endfor %}
+{%- endfor %}

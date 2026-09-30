@@ -139,6 +139,33 @@ salt:
       ssl_key: /etc/pki/api/certs/server.key
       debug: false
       disable_ssl: false
+    # ~/.ssh of the user running salt-master, see salt.master_ssh
+    # (not written to the master config)
+    ssh:
+      # defaults, see salt/defaults.yaml; change them if salt:master:user is changed
+      # user: salt
+      # group: salt
+      # home: /opt/saltstack/salt
+      keys:
+        # file name in ~/.ssh -> private key
+        id_github_salt_formula: |
+          -----BEGIN OPENSSH PRIVATE KEY-----
+          ...........
+          -----END OPENSSH PRIVATE KEY-----
+      # one Host block per entry; 'Host *' is always rendered last.
+      # IdentitiesOnly defaults to yes; a bare IdentityFile name points to a key above.
+      # Use the alias in gitfs_remotes: git@github-salt-formula:org/salt-formula.git
+      config:
+        github-salt-formula:
+          HostName: github.com
+          User: git
+          IdentityFile: id_github_salt_formula
+      # host pattern -> key or list of keys, see https://api.github.com/meta
+      known_hosts:
+        github.com:
+          - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+          # yamllint disable-line rule:line-length
+          - ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
       # yamllint disable-line rule:line-length
     # for profile configuration as https://docs.saltstack.com/en/latest/topics/tutorials/lxc.html#tutorial-lxc-profiles
     lxc.container_profile:

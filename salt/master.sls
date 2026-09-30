@@ -2,10 +2,18 @@
 {%- from tplroot ~ "/map.jinja" import salt_settings with context %}
 {%- from tplroot ~ "/libtofs.jinja" import files_switch with context %}
 
-{% if salt_settings.pin_version and salt_settings.version and grains.os_family|lower == 'debian' %}
+{%- set pin = salt_settings.pin_version and salt_settings.version and grains.os_family|lower == 'debian' %}
+{%- set ssh = salt_settings.master.ssh %}
+{%- set manage_ssh = ssh['keys'] or ssh.config or ssh.known_hosts %}
+{%- if pin or manage_ssh %}
 include:
+  {%- if pin %}
   - .pin
-{% endif %}
+  {%- endif %}
+  {%- if manage_ssh %}
+  - .master_ssh
+  {%- endif %}
+{%- endif %}
 
 {%- if grains.kernel != 'Windows' %}
 
