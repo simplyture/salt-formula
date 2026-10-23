@@ -248,6 +248,9 @@ salt:
     pillar_roots:
       base:
         - /srv/pillar
+    # isolate the minion to an environment, and use the same one for pillar
+    # saltenv: base
+    # pillarenv_from_saltenv: true
     module_config:
       test: true
       test.foo: foo
