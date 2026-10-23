@@ -61,6 +61,14 @@ Install a minion
 ^^^^^^^^^^^^^^^
 
 Install a master.
+Also includes ``salt.master_ssh`` when ``salt:master:ssh`` is set.
+
+``salt.master_ssh``
+^^^^^^^^^^^^^^^^^^^
+
+Manage ``~/.ssh`` of the user running salt-master (``/opt/saltstack/salt/.ssh`` for onedir packages):
+keys (``.pub`` optional, needed by pygit2 only), ``config`` and ``known_hosts`` from ``salt:master:ssh``.
+Useful for gitfs with GitPython, which ignores ``gitfs_privkey``/``gitfs_pubkey`` and relies on plain ssh.
 
 ``salt.syndic``
 ^^^^^^^^^^^^^^^
@@ -83,6 +91,7 @@ Configure pillar data under salt:ssh_roster to feed the template.
 
 Install salt api
 Requisite: Configure salt-master with rest_cherrypy or rest_tornado.
+Since Salt 3006 set ``salt:master:netapi_enable_clients`` as well, otherwise every API call is rejected.
 
 ``salt.standalone``
 ^^^^^^^^^^^^^^^^^^^
@@ -211,6 +220,26 @@ install_packages must indicate that the installation of a package is desired. If
 A future update to the formula may include extraction of version from the downloaded .pkg itself; but for the time being you MUST set version to indicate what you believe it to be.
 
 Refer to pillar.example for more information.
+
+Windows Support
+---------------
+
+On Windows the salt.minion state manages the ``salt-minion-py3`` package from winrepo-ng served by the salt-master (``salt://win/repo-ng``). An already installed minion can be upgraded and configured by the formula:
+
+::
+
+    salt:
+      version: 3007.8            # install/upgrade to this version
+      minion_pkg_state: installed  # or latest
+      pkg_refresh: True          # default on Windows
+
+The package definition in winrepo-ng must set ``use_scheduler: True``: the installer stops the salt-minion service, so it has to run as a scheduled task rather than as a child of the minion. While that task (``update-salt-software``) runs, the formula doesn't start or restart the minion service; the installer brings it back up.
+
+``full_name`` in the definition must match the ``DisplayName`` of the installed minion, otherwise ``pkg.list_pkgs`` won't report ``salt-minion-py3`` and the package will be reinstalled on every run. The exe (NSIS) installer registers ``Salt Minion <version> (Python 3)``, the MSI registers ``Salt Minion <version>``.
+
+Use only ``/S`` as ``install_flags``. ``/master=``, ``/minion-name=``, ``/default-config`` or ``/custom-config=`` make the installer back up the existing ``minion``/``minion.d`` config and write a new one.
+
+Migrating from the MSI: the exe installer uninstalls an MSI-installed minion first, keeping ``conf`` and ``pki``, unless the MSI was installed with ``MINION_CONFIG`` or ``REMOVE_CONFIG=1``. In that case the uninstall wipes the whole root dir, so the formula removes the ``REMOVE_CONFIG`` value from ``HKLM\SOFTWARE\Salt Project\Salt`` before installing the package.
 
 Testing
 -------

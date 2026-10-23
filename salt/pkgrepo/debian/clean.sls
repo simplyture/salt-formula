@@ -6,7 +6,7 @@ salt-pkgrepo-clean-saltstack-debian:
   pkgrepo.absent:
     - name: {{ salt_settings.pkgrepo }}
   file.absent:
-    - name: /etc/apt/sources.list.d/salt.list
+    - name: /etc/apt/sources.list.d/salt.sources
 
 salt-pkgrepo-clean-saltstack-debian-apt-key:
   file.absent:

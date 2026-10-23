@@ -17,6 +17,7 @@ gitfs-key-{{ key }}-{{ type }}:
         root
         {%- endif %}
     - mode: 600
+    - show_changes: false
     - makedirs: True
     - defaults:
         key: {{ key }}

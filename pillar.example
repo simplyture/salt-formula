@@ -24,6 +24,16 @@ salt:
   # Optional: set salt version (if install_packages is set to true)
   version: '3006.9'
 
+  # State of the salt-minion package managed by `salt.minion`:
+  #   installed - install `version` (or any version if not set); default
+  #   latest    - upgrade to the newest available version (`version` is ignored)
+  minion_pkg_state: installed
+
+  # Refresh the package database before installing the package.
+  # Defaults to true on Windows, so new versions added to winrepo-ng on
+  # the master are picked up right away.
+  pkg_refresh: false
+
   # Pin version provided under 'version' key by using apt-pinning
   # available only on Debian family OS-es
   pin_version: false
@@ -112,6 +122,16 @@ salt:
     pillar_roots:
       base:
         - /srv/pillar
+    # for salt-api with cherrypy rest interface
+    rest_cherrypy:
+      port: 8000
+      ssl_crt: /etc/pki/api/certs/server.crt
+      ssl_key: /etc/pki/api/certs/server.key
+    # clients allowed via salt-api (none are enabled by default since 3006)
+    netapi_enable_clients:
+      - local
+      - local_async
+      - runner
     # for salt-api with tornado rest interface
     rest_tornado:
       port: 8000
@@ -119,6 +139,36 @@ salt:
       ssl_key: /etc/pki/api/certs/server.key
       debug: false
       disable_ssl: false
+    # ~/.ssh of the user running salt-master, see salt.master_ssh
+    # (not written to the master config)
+    ssh:
+      # defaults, see salt/defaults.yaml; change them if salt:master:user is changed
+      # user: salt
+      # group: salt
+      # home: /opt/saltstack/salt
+      keys:
+        # file name in ~/.ssh; ``public`` is optional (<name>.pub), it is only
+        # needed for pygit2: gitfs_pubkey: /opt/saltstack/salt/.ssh/<name>.pub
+        id_github_salt_formula:
+          private: |
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            ...........
+            -----END OPENSSH PRIVATE KEY-----
+          public: ssh-ed25519 AAAA........ salt@master
+      # one Host block per entry; 'Host *' is always rendered last.
+      # IdentitiesOnly defaults to yes; a bare IdentityFile name points to a key above.
+      # Use the alias in gitfs_remotes: git@github-salt-formula:org/salt-formula.git
+      config:
+        github-salt-formula:
+          HostName: github.com
+          User: git
+          IdentityFile: id_github_salt_formula
+      # host pattern -> key or list of keys, see https://api.github.com/meta
+      known_hosts:
+        github.com:
+          - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+          # yamllint disable-line rule:line-length
+          - ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
       # yamllint disable-line rule:line-length
     # for profile configuration as https://docs.saltstack.com/en/latest/topics/tutorials/lxc.html#tutorial-lxc-profiles
     lxc.container_profile:
